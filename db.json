@@ -1,0 +1,42 @@
+{
+  "q1": {
+    "question": "What is the main source of energy for the Earth?",
+    "answer": "The majority of the Earth's energy comes the Sun. Solar radiation provides Earth with heat energy and light, both of which are essential for life, and used in energy production by mankind."
+  },
+  "q2": {
+    "question": "What are the three states of matter?",
+    "answer": "The three states of matter are solid, liquid and gas. Solids have a fixed shape and volume, liquids take the shape of their container and flow, while gases have no fixed shape or volume and spread to fill the entire container."
+  },
+  "q3": {
+    "question": "What is diffusion?",
+    "answer": "Diffusion is the process of one substance gradually spreading out and mixing with another substance. It is a form of passive transport, meaning that no external energy is required for the molecules to move from one place to another. Diffusion is a natural process that can take place in gases, liquids, and solids."
+  },
+  "q4": {
+    "question": "What is the law of conservation of mass?",
+    "answer": "The law of conservation of mass states that matter can be neither created nor destroyed. This implies that all the mass in a system remains constant, as mass can be transferred but not destroyed. This law is an important part of chemistry and physics."
+  },
+  "q5": {
+    "question": "What is the study of living organisms called?",
+    "answer": "The study of living organisms is called biology. It deals with the identification, classification and study of the various forms of life, their interaction with each other and their environment."
+  },
+  "q6": {
+    "question": "What produces oxygen during photosynthesis?",
+    "answer": "The process of photosynthesis produces oxygen as a by-product of the reaction between light energy from the Sun and the carbon dioxide absorbed from the atmosphere. The oxygen is released from the leaves of the plants into the atmosphere."
+  },
+  "q7": {
+    "question": "What is the process of meiosis?",
+    "answer": "Meiosis is the process of cell division that occurs in sexually reproducing organisms, such as humans. The process involves two divisions, which result in four daughter cells that contain only half the genetic information of their parent cells."
+  },
+  "q8": {
+    "question": "What is mass?",
+    "answer": "Mass is a measure of the amount of matter or material that makes up an object or substance."
+  },
+  "q9": {
+    "question": "What is the periodic table?",
+    "answer": "The periodic table is an arrangement of elements in order of increasing atomic number, that organizes elements into groups based on their similar properties."
+  },
+  "q10": {
+    "question": "What is a chemical reaction?",
+    "answer": "A chemical reaction is a process in which one set of chemical substances are converted into another set of substances, with different properties."
+  }
+}
