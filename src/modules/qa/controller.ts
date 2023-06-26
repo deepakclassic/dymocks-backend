@@ -1,12 +1,25 @@
-import { RequestHandler } from 'express';
+import { RequestHandler } from "express";
 import {
   analyseAnswerByQuestionId,
   analyseQuestionAnswerByQpenAi,
   extractDataFromPdf,
   filterDataInFormat,
-  extractContentById
-} from './service';
-import { createVectorIndex } from '../../pinecone/vectoreUpsert';
+  extractContentById,
+  getQuestionListWithIds,
+} from "./service";
+import { createVectorIndex } from "../../pinecone/vectoreUpsert";
+
+export const getQuestionList: RequestHandler<
+  unknown,
+  unknown,
+  unknown,
+  unknown
+> = async (req, res) => {
+  const questionList = await getQuestionListWithIds();
+  return res.status(200).json({
+    questionList,
+  });
+};
 
 export const analyseAnswer: RequestHandler<
   unknown,
@@ -20,10 +33,10 @@ export const analyseAnswer: RequestHandler<
   const { questionId, answer } = req.body;
   const analyzedResponse = await analyseAnswerByQuestionId({
     questionId,
-    answer
+    answer,
   });
   return res.status(200).json({
-    response: analyzedResponse
+    response: analyzedResponse,
   });
 };
 
@@ -39,10 +52,10 @@ export const analyseAnswerQuestion: RequestHandler<
   const { questionId, answer } = req.body;
   const analyzedResponse = await analyseQuestionAnswerByQpenAi({
     questionId,
-    answer
+    answer,
   });
   return res.status(200).json({
-    response: analyzedResponse
+    response: analyzedResponse,
   });
 };
 
@@ -63,32 +76,32 @@ export const extractPdfData: RequestHandler<
   ) {
     const filterData = await filterDataInFormat(extracatedData.result);
     if (filterData) {
-      const namespace: string = extracatedData.fileName.split('.')[0];
+      const namespace: string = extracatedData.fileName.split(".")[0];
       // eslint-disable-next-line no-restricted-syntax, no-unreachable-loop
       for (const [index, text] of filterData.entries()) {
         // eslint-disable-next-line no-await-in-loop
         const result = await createVectorIndex(text, namespace, index);
         console.log(
-          '++++++++++++++RESULT++++++++++++++++++++++',
+          "++++++++++++++RESULT++++++++++++++++++++++",
           index,
           result
         );
         if (result.code) {
           return {
             status: 500,
-            message: 'Failed to upsert data into pinecone db'
+            message: "Failed to upsert data into pinecone db",
           };
         }
       }
       return res.status(200).json({
         response: filterData.length,
-        message: 'Data upsert successfully'
+        message: "Data upsert successfully",
       });
     }
-    return res.status(500).json({ error: 'Failed to filter extracted data' });
+    return res.status(500).json({ error: "Failed to filter extracted data" });
   }
   // Handle case where extractedData is undefined or not an array of strings
-  return res.status(500).json({ error: 'Failed to extract data from PDF' });
+  return res.status(500).json({ error: "Failed to extract data from PDF" });
 };
 
 export const summarizeChapterData: RequestHandler<
@@ -104,8 +117,8 @@ export const summarizeChapterData: RequestHandler<
   const contentById = await extractContentById(namespace, vectorId);
   if (contentById) {
     return res.status(200).json({
-      response: contentById
+      response: contentById,
     });
   }
-  return res.status(500).json({ error: 'Failed to fetch content from db ' });
+  return res.status(500).json({ error: "Failed to fetch content from db " });
 };

@@ -1,39 +1,50 @@
-import { Configuration, OpenAIApi } from 'openai';
-import fs from 'fs';
+import { Configuration, OpenAIApi } from "openai";
+import fs from "fs";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { PDFExtract, PDFExtractOptions } from 'pdf.js-extract';
+import { PDFExtract, PDFExtractOptions } from "pdf.js-extract";
 
-import { Message, QuestionAnswerJson } from './types';
-import { contentByVectorId } from '../../pinecone/extractContentById';
+import { Message, QuestionAnswerJson } from "./types";
+import { contentByVectorId } from "../../pinecone/extractContentById";
 
 // openai configuration
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_APIKEY
+  apiKey: process.env.OPENAI_APIKEY,
 });
 
 const openai = new OpenAIApi(configuration);
 
 // Read file content
-const fileContent = fs.readFileSync('./db.json', 'utf-8');
+const fileContent = fs.readFileSync("./db.json", "utf-8");
 
 // Parse JSON data
 const jsonData: QuestionAnswerJson = JSON.parse(fileContent);
 
 async function runCompletion(message: Array<Message>) {
   const completion = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo-16k',
+    model: "gpt-3.5-turbo-16k",
     max_tokens: 256,
     temperature: 1,
     frequency_penalty: 0,
     presence_penalty: 0,
     top_p: 1,
-    messages: message
+    messages: message,
   });
   const result = completion.data.choices[0].message?.content;
   if (!result) {
-    throw new Error('Empty Response from openai');
+    throw new Error("Empty Response from openai");
   }
   return result;
+}
+
+// function to get list of all question with id
+export async function getQuestionListWithIds() {
+  const output = Object.keys(jsonData).map((key) => {
+    return {
+      id: key,
+      question: jsonData[key].question,
+    };
+  });
+  return output;
 }
 
 // function to analyse answers by openai
@@ -43,22 +54,22 @@ export async function analyseAnswerByQuestionId(request: {
 }) {
   const objectOfQuestionId = jsonData[request.questionId];
   if (!objectOfQuestionId) {
-    return { result: 'Invalid QuestionId' };
+    return { result: "Invalid QuestionId" };
   }
   const messages: Message[] = [
     {
-      role: 'system',
-      content: `You are a system that evaluates the answer given by the user with the correct answer below using Australian rubric system and outputs in JSON using the below format. \n\nformat\n{\n  grade: out of 5,\n  feedback\n}\n\nCorrect Answer:${objectOfQuestionId.answer}`
+      role: "system",
+      content: `You are a system that evaluates the answer given by the user with the correct answer below using Australian rubric system and outputs in JSON using the below format. \n\nformat\n{\n  grade: out of 5,\n  feedback\n}\n\nCorrect Answer:${objectOfQuestionId.answer}`,
     },
     {
-      role: 'user',
-      content: `Evaluate this answer based on system's correct answer,${request.answer}`
-    }
+      role: "user",
+      content: `Evaluate this answer based on system's correct answer,${request.answer}`,
+    },
   ];
-  console.log('===================Input Message Body====>', messages);
+  console.log("===================Input Message Body====>", messages);
   const response = await runCompletion(messages);
   const parsedResult = JSON.parse(response);
-  console.log('=============Analyised Response================>', parsedResult);
+  console.log("=============Analyised Response================>", parsedResult);
   return parsedResult;
 }
 
@@ -70,23 +81,23 @@ export async function analyseQuestionAnswerByQpenAi(request: {
 }) {
   const objectOfQuestionId = jsonData[request.questionId];
   if (!objectOfQuestionId) {
-    return { result: 'Invalid QuestionId' };
+    return { result: "Invalid QuestionId" };
   }
   const messages: Message[] = [
     {
-      role: 'system',
-      content: `You are a system that evaluates the answer given by the user using Australian rubric system and outputs in JSON using the below format. \n\nformat\n{\n  grade: out of 5,\n  feedback\n}`
+      role: "system",
+      content: `You are a system that evaluates the answer given by the user using Australian rubric system and outputs in JSON using the below format. \n\nformat\n{\n  grade: out of 5,\n  feedback\n}`,
     },
     {
-      role: 'user',
-      content: `Evaluate this answer of this question where question :${objectOfQuestionId.question}and answer:${request.answer}`
-    }
+      role: "user",
+      content: `Evaluate this answer of this question where question :${objectOfQuestionId.question}and answer:${request.answer}`,
+    },
   ];
-  console.log('===================Message Body===>', messages);
+  console.log("===================Message Body===>", messages);
   const response = await runCompletion(messages);
   const parsedResult = JSON.parse(response);
   console.log(
-    '=============Analyised Response for Question and Answer================>',
+    "=============Analyised Response for Question and Answer================>",
     parsedResult
   );
   return parsedResult;
@@ -98,20 +109,20 @@ export async function extractDataFromPdf() {
   const pdfExtract = new PDFExtract();
   const options: PDFExtractOptions = {
     normalizeWhitespace: true,
-    disableCombineTextItems: true
+    disableCombineTextItems: true,
   };
   const output = await pdfExtract
-    .extract('physics.pdf', options)
+    .extract("physics.pdf", options)
     .then((data) => {
       const str = data.pages
-        .map((x) => x.content.map((y) => y.str).join(' '))
-        .join(' ');
+        .map((x) => x.content.map((y) => y.str).join(" "))
+        .join(" ");
       const result = str
-        .replace(/{\[BEGIN]}/g, '\n{[BEGIN]}\n')
-        .replace(/{\[END]}/g, '\n{[END]}\n')
+        .replace(/{\[BEGIN]}/g, "\n{[BEGIN]}\n")
+        .replace(/{\[END]}/g, "\n{[END]}\n")
         .match(/^{\[BEGIN\]}[\s\S]*?{\[END\]}$/gm)
         ?.map(
-          (v) => `${v.replace(/{\[BEGIN]}/g, '').replace(/{\[END]}/g, '')}`
+          (v) => `${v.replace(/{\[BEGIN]}/g, "").replace(/{\[END]}/g, "")}`
         );
 
       return { fileName: data.filename, result };
@@ -125,22 +136,22 @@ export async function filterDataInFormat(inputData: string[]) {
     .map((input) => {
       const keyResult: string[] =
         input
-          .replace(/{\[CHAPTER-START]}/g, '\n{[CHAPTER-START]}\n')
-          .replace(/{\[CHAPTER-END]}/g, '\n{[CHAPTER-END]}\n')
+          .replace(/{\[CHAPTER-START]}/g, "\n{[CHAPTER-START]}\n")
+          .replace(/{\[CHAPTER-END]}/g, "\n{[CHAPTER-END]}\n")
           .match(/^{\[CHAPTER-START\]}[\s\S]*?{\[CHAPTER-END\]}$/gm)
           ?.map((v) =>
             v
-              .replace(/{\[CHAPTER-START]}/g, '')
-              .replace(/{\[CHAPTER-END]}/g, '')
+              .replace(/{\[CHAPTER-START]}/g, "")
+              .replace(/{\[CHAPTER-END]}/g, "")
           ) ?? [];
       const valueResult: string = input
-        .replace(/{\[CHAPTER-END]}/g, '')
-        .replace(/{\[CHAPTER-START]}/g, '');
+        .replace(/{\[CHAPTER-END]}/g, "")
+        .replace(/{\[CHAPTER-START]}/g, "");
 
       if (keyResult && keyResult.length > 0 && valueResult) {
         return {
-          title: keyResult[0].replace(/\n/g, '').trim(),
-          content: valueResult.replace(/\n/g, '').trim()
+          title: keyResult[0].replace(/\n/g, "").trim(),
+          content: valueResult.replace(/\n/g, "").trim(),
         };
       }
       return null;
@@ -154,17 +165,17 @@ export async function extractContentById(namespace: string, id: string) {
   const result: string = await contentByVectorId(namespace, id);
   const messageOption: Message[] = [
     {
-      role: 'system',
-      content: `You are a system that generate the summarize response of this conent in key points format with numbering:${result}`
-    }
+      role: "system",
+      content: `You are a system that generate the summarize response of this conent in key points format with numbering:${result}`,
+    },
   ];
   const responseByChatCompletion: string = await runCompletion(messageOption);
   console.log(
-    '======================SummarizedContent==================>',
+    "======================SummarizedContent==================>",
     responseByChatCompletion
   );
   return {
-    DetailedContent: result.replace(/\n/g, '').trim(),
-    SummarizedContent: responseByChatCompletion.replace(/\n/g, '').trim()
+    DetailedContent: result.replace(/\n/g, "").trim(),
+    SummarizedContent: responseByChatCompletion.replace(/\n/g, "").trim(),
   };
 }
