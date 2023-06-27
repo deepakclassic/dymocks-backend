@@ -10,8 +10,8 @@ import { contentByVectorId } from "../../pinecone/extractContentById";
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_APIKEY,
 });
-
 const openai = new OpenAIApi(configuration);
+console.log("-----------", openai);
 
 // Read file content
 const fileContent = fs.readFileSync("./db.json", "utf-8");
